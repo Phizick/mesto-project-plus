@@ -8,7 +8,7 @@ export const aboutValidationOptions = {
   message: 'about info must be between 2 and 200 characters',
 };
 
-export const avatarValidationOptions = {
+export const linkValidationOptions = {
   validator: (str: string) => /^http(s)?:\/\/\S+(\.jpg|\.jpeg|\.png)$/.test(str),
   message: 'avatar must be a valid URL to a JPG or PNG image',
 };

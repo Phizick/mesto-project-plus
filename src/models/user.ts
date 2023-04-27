@@ -1,5 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
-import { nameValidationOptions, aboutValidationOptions, avatarValidationOptions } from '../utils/validators';
+import { nameValidationOptions, aboutValidationOptions, linkValidationOptions } from '../utils/validators';
 
 interface IUser extends Document {
   name: string;
@@ -25,7 +25,7 @@ const UserSchema = new Schema<IUser>({
   avatar: {
     type: String,
     required: [true, 'avatar is required'],
-    validate: avatarValidationOptions,
+    validate: linkValidationOptions,
   },
 });
 
