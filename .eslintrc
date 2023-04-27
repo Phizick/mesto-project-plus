@@ -46,6 +46,9 @@
 					"_id"
 				]
 			}
-		]
+		],
+    "class-methods-use-this": ["off"],
+    "consistent-return": ["off"],
+    "import/prefer-default-export": ["off"]
 	}
 }
