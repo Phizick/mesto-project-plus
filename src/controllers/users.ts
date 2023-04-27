@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { default as ErrorHandler } from '../errors/errors';
+import ErrorHandler from '../errors/errors';
 import User from '../models/user';
-
 
 class UserController {
   async createUser(req: Request, res: Response, next: NextFunction) {
