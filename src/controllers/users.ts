@@ -21,7 +21,7 @@ class UserController {
     try {
       const user = await User.findById(req.params.id);
       if (!user) {
-        throw ErrorHandler.authorization('user not found');
+        return next(ErrorHandler.authorization('user not found'));
       }
       res.json({ data: user });
     } catch (error: unknown) {

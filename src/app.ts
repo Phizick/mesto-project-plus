@@ -2,7 +2,7 @@ import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import router from './routes/index';
 
-const PORT = 3503;
+const PORT = 3000;
 const app: Application = express();
 
 app.use(express.json());

@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import ErrorHandler from '../errors/errors';
 import Card from '../models/card';
 
-class CardsController {
+class CardController {
   async createCard(req: any, res: Response, next: NextFunction) {
     const { name, link } = req.body;
     const owner = req.user?._id;
@@ -105,4 +105,4 @@ class CardsController {
   }
 }
 
-export default new CardsController();
+export default new CardController();
