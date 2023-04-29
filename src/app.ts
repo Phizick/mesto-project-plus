@@ -1,12 +1,14 @@
 import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import router from './routes/index';
+import errorMiddleware from './middleware/errorMiddleware';
 
-const PORT = 3000;
+require('dotenv').config();
+
+const PORT = process.env.PORT || 3000;
 const app: Application = express();
 
 app.use(express.json());
-app.use('/', router);
 
 app.use((req: any, res, next) => {
   req.user = {
@@ -16,9 +18,12 @@ app.use((req: any, res, next) => {
   next();
 });
 
+app.use('/', router);
+app.use(errorMiddleware);
+
 const start = async () => {
   try {
-    await mongoose.connect('mongodb://127.0.0.1:27017/test');
+    await mongoose.connect(`${process.env.DB_URL}`);
     app.listen(
       PORT,
       () => console.log(`Server started on port ${PORT}`),

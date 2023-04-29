@@ -14,7 +14,7 @@ class CardController {
       return res.json({ data: card });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 
@@ -24,7 +24,7 @@ class CardController {
       return res.json({ data: cards });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 
@@ -40,7 +40,7 @@ class CardController {
         });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 
@@ -70,7 +70,7 @@ class CardController {
       return res.json({ data: card });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 
@@ -100,7 +100,7 @@ class CardController {
       return res.json({ data: card });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 }

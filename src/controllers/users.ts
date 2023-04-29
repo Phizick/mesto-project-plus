@@ -13,7 +13,7 @@ class UserController {
       return res.json({ data: user });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 
@@ -30,7 +30,7 @@ class UserController {
         return next(error);
       }
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 
@@ -40,7 +40,7 @@ class UserController {
       return res.json({ data: users });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 
@@ -69,7 +69,7 @@ class UserController {
       return res.json({ data: user });
     } catch (error) {
       console.log(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 
@@ -97,7 +97,7 @@ class UserController {
       return res.json({ data: user });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('server error'));
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
     }
   }
 }
