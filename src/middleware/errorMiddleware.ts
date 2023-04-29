@@ -6,5 +6,5 @@ export default function errorMiddleware(err: any, req: Request, res: Response) {
   if (err instanceof ErrorHandler) {
     return res.status(err.status).json({ message: err.message });
   }
-  return res.status(500).json('server error');
+  return res.status(500).json('На сервере произошла ошибка');
 }
