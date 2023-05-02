@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
+import * as process from 'process';
+import jwt from 'jsonwebtoken';
 import ErrorHandler from '../errors/errors';
 import User from '../models/user';
 
@@ -116,6 +118,19 @@ class UserController {
         return next(ErrorHandler.authorization('user not found'));
       }
       return res.json({ data: user });
+    } catch (error) {
+      console.error(error);
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
+    }
+  }
+
+  async login(req: any, res: Response, next: NextFunction) {
+    const { email, password } = req.body;
+    try {
+      const user = await User.findUserByData(email, password);
+      return res.send({
+        token: jwt.sign({ _id: user._id }, process.env.TOKEN_ENV as string, { expiresIn: '7d' }),
+      });
     } catch (error) {
       console.error(error);
       next(ErrorHandler.internal('На сервере произошла ошибка'));
