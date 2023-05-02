@@ -1,10 +1,29 @@
-import { model, Schema, Document } from 'mongoose';
-import { nameValidationOptions, aboutValidationOptions, linkValidationOptions } from '../utils/validators';
+import {
+  model, Schema, Document, Model,
+} from 'mongoose';
+import bcrypt from 'bcrypt';
+import {
+  nameValidationOptions,
+  aboutValidationOptions,
+  linkValidationOptions,
+  emailValidationOptions,
+} from '../utils/validators';
+import ErrorHandler from '../errors/errors';
 
 interface IUser extends Document {
   name: string;
   about: string;
   avatar: string;
+  email: string;
+  password: string;
+}
+
+interface IUserDocument extends Document<IUser> {
+}
+
+interface UserModel extends Model<IUser> {
+  // eslint-disable-next-line
+  findUserByData: (email: string, password: string) => Promise<IUserDocument>;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -12,21 +31,38 @@ const UserSchema = new Schema<IUser>({
     type: String,
     minlength: 2,
     maxlength: 30,
-    required: [true, 'name is required'],
     validate: nameValidationOptions,
   },
   about: {
     type: String,
     minlength: 2,
     maxlength: 200,
-    required: [true, 'about info is required'],
     validate: aboutValidationOptions,
   },
   avatar: {
     type: String,
-    required: [true, 'avatar is required'],
     validate: linkValidationOptions,
+  },
+  email: {
+    type: String,
+    unique: true,
+    required: [true, 'e-mail is required'],
+    validate: emailValidationOptions,
+  },
+  password: {
+    type: String,
+    required: [true, 'password is required'],
+    select: false,
   },
 });
 
-export default model<IUser>('User', UserSchema);
+UserSchema.static('findUserByData', async function findUserByData(email: string, password: string) {
+  const user = await this.findOne({ email }).select('+password');
+  const userValid = await bcrypt.compare(password, user.password);
+  if (!user || !userValid) {
+    return ErrorHandler.authorization('invalid email or password');
+  }
+  return user;
+});
+
+export default model<IUser, UserModel>('User', UserSchema);

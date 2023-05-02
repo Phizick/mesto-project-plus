@@ -1,3 +1,6 @@
+import validator from 'validator';
+import { urlRegExp } from '../constants/urlRegExp';
+
 interface ValidationOptions {
   // eslint-disable-next-line no-unused-vars
   validator: (arg: string) => boolean;
@@ -15,6 +18,11 @@ export const aboutValidationOptions: ValidationOptions = {
 };
 
 export const linkValidationOptions: ValidationOptions = {
-  validator: (str: string) => /^http(s)?:\/\/\S+(\.jpg|\.jpeg|\.png)$/.test(str),
+  validator: (str: string) => urlRegExp.test(str),
   message: 'avatar must be a valid URL',
+};
+
+export const emailValidationOptions: ValidationOptions = {
+  validator: (str: string) => validator.isEmail(str),
+  message: 'invalid e-mail data',
 };

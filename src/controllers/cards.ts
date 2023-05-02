@@ -31,10 +31,13 @@ class CardController {
   async removeCard(req: any, res: Response, next: NextFunction) {
     const { cardId } = req.params;
     try {
-      await Card.findByIdAndUpdate(cardId)
+      await Card.findByIdAndRemove(cardId)
         .then((card) => {
           if (!card) {
             return next(ErrorHandler.authorization('card not found'));
+          }
+          if (card.owner.toString() !== req.user?._id) {
+            return next(ErrorHandler.forbidden('action prohibited'));
           }
           return res.json({ data: card });
         });

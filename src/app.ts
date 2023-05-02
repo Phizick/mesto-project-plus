@@ -1,7 +1,13 @@
 import express, { Application } from 'express';
 import mongoose from 'mongoose';
+import { errors } from 'celebrate';
 import router from './routes/index';
-import errorMiddleware from './middleware/errorMiddleware';
+import errorMiddleware from './middlewares/errorMiddleware';
+import UserController from './controllers/users';
+import authMiddleware from './middlewares/auth';
+import { requestLogger } from './middlewares/requestLogger';
+import { errorLogger } from './middlewares/errorLogger';
+import { createUserValidation, loginValidation } from './validation/userValidation';
 
 require('dotenv').config();
 
@@ -10,15 +16,14 @@ const app: Application = express();
 
 app.use(express.json());
 
-app.use((req: any, res, next) => {
-  req.user = {
-    _id: '644aa6b337ae86e426ed79a2',
-  };
+app.use(requestLogger);
 
-  next();
-});
-
+app.post('/signin', loginValidation, UserController.login);
+app.post('/signup', createUserValidation, UserController.createUser);
+app.use(authMiddleware);
 app.use('/', router);
+app.use(errorLogger);
+app.use(errors());
 app.use(errorMiddleware);
 
 const start = async () => {

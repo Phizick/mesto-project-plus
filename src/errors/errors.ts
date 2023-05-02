@@ -20,4 +20,7 @@ export default {
   internal(message: string): IError {
     return serverError(500, message);
   },
+  forbidden(message: string): IError {
+    return serverError(403, message);
+  },
 };

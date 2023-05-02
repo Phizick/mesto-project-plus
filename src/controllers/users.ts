@@ -1,16 +1,39 @@
 import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcrypt';
+import * as process from 'process';
+import jwt from 'jsonwebtoken';
 import ErrorHandler from '../errors/errors';
 import User from '../models/user';
 
 class UserController {
   async createUser(req: Request, res: Response, next: NextFunction) {
-    const { name, about, avatar } = req.body;
-    if (!name || !about || !avatar) {
+    const {
+      name = 'Жак-Ив-Кусто',
+      about = 'Исследователь',
+      avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+      email,
+      password,
+    } = req.body;
+    if (!email || !password) {
       return next(ErrorHandler.badRequest('incorrect user data'));
     }
     try {
-      const user = await User.create({ name, about, avatar });
-      return res.json({ data: user });
+      const uniqueUser = await User.findOne({ email });
+      if (uniqueUser) {
+        return next(ErrorHandler.badRequest('incorrect user data'));
+      }
+      const hashPassword = await bcrypt.hash(password, 12);
+      const user = await User.create({
+        name, about, avatar, email, password: hashPassword,
+      });
+      return res.json({
+        data: {
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        },
+      });
     } catch (error) {
       console.error(error);
       next(ErrorHandler.internal('На сервере произошла ошибка'));
@@ -25,6 +48,23 @@ class UserController {
       }
       res.json({ data: user });
     } catch (error: unknown) {
+      // @ts-ignore
+      if (error instanceof ErrorHandler) {
+        return next(error);
+      }
+      console.error(error);
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
+    }
+  }
+
+  async getUserInfo(req: any, res: Response, next: NextFunction) {
+    try {
+      const user = await User.findById(req.user?._id);
+      if (!user) {
+        return next(ErrorHandler.authorization('user not found'));
+      }
+      res.send({ data: user });
+    } catch (error) {
       // @ts-ignore
       if (error instanceof ErrorHandler) {
         return next(error);
@@ -95,6 +135,19 @@ class UserController {
         return next(ErrorHandler.authorization('user not found'));
       }
       return res.json({ data: user });
+    } catch (error) {
+      console.error(error);
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
+    }
+  }
+
+  async login(req: any, res: Response, next: NextFunction) {
+    const { email, password } = req.body;
+    try {
+      const user = await User.findUserByData(email, password);
+      return res.send({
+        token: jwt.sign({ _id: user._id }, process.env.TOKEN_ENV as string, { expiresIn: '7d' }),
+      });
     } catch (error) {
       console.error(error);
       next(ErrorHandler.internal('На сервере произошла ошибка'));
