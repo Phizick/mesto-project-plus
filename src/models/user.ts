@@ -59,11 +59,11 @@ const UserSchema = new Schema<IUser>({
 UserSchema.static('findUserByData', async function findUserByData(email: string, password: string) {
   const user = await this.findOne({ email }).select('+password');
   if (!user) {
-    throw new AuthorizationError('invalid email or password');
+    return new AuthorizationError('invalid email or password');
   }
   const userValid = await bcrypt.compare(password, user.password);
   if (!userValid) {
-    throw new AuthorizationError('invalid email or password');
+    return new AuthorizationError('invalid email or password');
   }
   return user;
 });

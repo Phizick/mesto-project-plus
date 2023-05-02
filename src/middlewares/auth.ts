@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
-import ErrorHandler from '../errors/BadRequestError';
+import AuthorizationError from '../errors/AuthorizationError';
 
 type AuthMiddlewareConfig = {
   headerName: string;
@@ -22,7 +22,7 @@ const authMiddleware = (config: AuthMiddlewareConfig = defaultConfig) => (req: a
   const headerValue = req.headers[headerName] as string | undefined;
 
   if (!headerValue || !headerValue.startsWith(`${authType} `)) {
-    return next(ErrorHandler.authorization('authorization required'));
+    return next(new AuthorizationError('authorization required'));
   }
 
   const token = extractBearerToken(headerValue, authType);
@@ -31,7 +31,7 @@ const authMiddleware = (config: AuthMiddlewareConfig = defaultConfig) => (req: a
   try {
     payload = verifyToken(token, secretKey);
   } catch (error) {
-    return next(ErrorHandler.authorization('authorization required'));
+    return next(new AuthorizationError('authorization required'));
   }
   req.user = { _id: payload } as { _id: JwtPayload };
   next();
