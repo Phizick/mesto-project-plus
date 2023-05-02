@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
-import ErrorHandler from '../errors/errors';
+import ErrorHandler from '../errors/BadRequestError';
 
 type AuthMiddlewareConfig = {
   headerName: string;

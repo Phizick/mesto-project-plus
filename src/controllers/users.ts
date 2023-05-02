@@ -2,29 +2,32 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import * as process from 'process';
 import jwt from 'jsonwebtoken';
-import ErrorHandler from '../errors/errors';
 import User from '../models/user';
+import InternalServerError from '../errors/InternalServerError';
+import NotFoundError from '../errors/NotFoundError';
+import BadRequestError from '../errors/BadRequestError';
+import ConflictingRequestError from '../errors/ConflictingRequestError';
 
 class UserController {
   async createUser(req: Request, res: Response, next: NextFunction) {
     const {
-      name = 'Жак-Ив-Кусто',
-      about = 'Исследователь',
-      avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-      email,
-      password,
+      name, about, avatar, email, password,
     } = req.body;
     if (!email || !password) {
-      return next(ErrorHandler.badRequest('incorrect user data'));
+      return next(new BadRequestError('Incorrect user data'));
     }
     try {
       const uniqueUser = await User.findOne({ email });
       if (uniqueUser) {
-        return next(ErrorHandler.badRequest('incorrect user data'));
+        return next(new ConflictingRequestError('User with this email already exists'));
       }
       const hashPassword = await bcrypt.hash(password, 12);
       const user = await User.create({
-        name, about, avatar, email, password: hashPassword,
+        name: name || 'Жак-Ив-Кусто',
+        about: about || 'Исследователь',
+        avatar: avatar || 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+        email,
+        password: hashPassword,
       });
       return res.json({
         data: {
@@ -34,9 +37,12 @@ class UserController {
           email: user.email,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      if (error instanceof Error && error.name === 'ValidationError') {
+        return next(new BadRequestError('Incorrect data'));
+      }
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -44,16 +50,15 @@ class UserController {
     try {
       const user = await User.findById(req.params.id);
       if (!user) {
-        return next(ErrorHandler.authorization('user not found'));
+        return next(new NotFoundError('user not found'));
       }
       res.json({ data: user });
-    } catch (error: unknown) {
-      // @ts-ignore
-      if (error instanceof ErrorHandler) {
-        return next(error);
-      }
+    } catch (error: any) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      if (error instanceof Error && error.name === 'ValidationError') {
+        return next(new BadRequestError('Incorrect data'));
+      }
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -61,16 +66,15 @@ class UserController {
     try {
       const user = await User.findById(req.user?._id);
       if (!user) {
-        return next(ErrorHandler.authorization('user not found'));
+        return next(new NotFoundError('user not found'));
       }
       res.send({ data: user });
     } catch (error) {
-      // @ts-ignore
-      if (error instanceof ErrorHandler) {
+      if (error instanceof Error) {
         return next(error);
       }
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -80,7 +84,7 @@ class UserController {
       return res.json({ data: users });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -90,7 +94,7 @@ class UserController {
 
     try {
       if (!name || !about) {
-        return next(ErrorHandler.badRequest('incorrect data'));
+        return next(new BadRequestError('incorrect data'));
       }
       const user = await User.findByIdAndUpdate(
         id,
@@ -104,12 +108,15 @@ class UserController {
         },
       );
       if (!user) {
-        return next(ErrorHandler.authorization('user not found'));
+        return next(new NotFoundError('user not found'));
       }
       return res.json({ data: user });
-    } catch (error) {
-      console.log(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+    } catch (error: any) {
+      console.error(error);
+      if (error instanceof Error && error.name === 'ValidationError') {
+        return next(new BadRequestError('Incorrect data'));
+      }
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -119,7 +126,7 @@ class UserController {
 
     try {
       if (!avatar) {
-        return next(ErrorHandler.badRequest('incorrect data'));
+        return next(new BadRequestError('incorrect data'));
       }
       const user = await User.findByIdAndUpdate(
         id,
@@ -132,12 +139,15 @@ class UserController {
         },
       );
       if (!user) {
-        return next(ErrorHandler.authorization('user not found'));
+        return next(new NotFoundError('user not found'));
       }
       return res.json({ data: user });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      if (error instanceof Error && error.name === 'ValidationError') {
+        return next(new BadRequestError('Incorrect data'));
+      }
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -150,7 +160,7 @@ class UserController {
       });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      next(error);
     }
   }
 }

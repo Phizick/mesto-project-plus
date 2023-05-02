@@ -1,6 +1,10 @@
 import { Response, NextFunction } from 'express';
-import ErrorHandler from '../errors/errors';
 import Card from '../models/card';
+import AuthorizationError from '../errors/AuthorizationError';
+import ForbiddenError from '../errors/ForbiddenError';
+import InternalServerError from '../errors/InternalServerError';
+import NotFoundError from '../errors/NotFoundError';
+import BadRequestError from '../errors/BadRequestError';
 
 class CardController {
   async createCard(req: any, res: Response, next: NextFunction) {
@@ -8,13 +12,16 @@ class CardController {
     const owner = req.user?._id;
     try {
       if (!name || !link) {
-        return next(ErrorHandler.badRequest('incorrect data'));
+        return next(new BadRequestError('incorrect data'));
       }
       const card = await Card.create({ name, link, owner });
       return res.json({ data: card });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      if (error instanceof Error && error.name === 'ValidationError') {
+        return next(new BadRequestError('Incorrect data'));
+      }
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -24,26 +31,25 @@ class CardController {
       return res.json({ data: cards });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
   async removeCard(req: any, res: Response, next: NextFunction) {
     const { cardId } = req.params;
     try {
-      await Card.findByIdAndRemove(cardId)
-        .then((card) => {
-          if (!card) {
-            return next(ErrorHandler.authorization('card not found'));
-          }
-          if (card.owner.toString() !== req.user?._id) {
-            return next(ErrorHandler.forbidden('action prohibited'));
-          }
-          return res.json({ data: card });
-        });
+      const card = await Card.findById(cardId);
+      if (!card) {
+        return next(new AuthorizationError('Card not found'));
+      }
+      if (card.owner.toString() !== req.user?._id) {
+        return next(new ForbiddenError('Action prohibited'));
+      }
+      await card.deleteOne();
+      return res.json({ data: card });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      next(new InternalServerError('Server error'));
     }
   }
 
@@ -53,7 +59,7 @@ class CardController {
 
     try {
       if (!cardId) {
-        return next(ErrorHandler.badRequest('incorrect data'));
+        return next(new BadRequestError('incorrect data'));
       }
       const card = await Card.findByIdAndUpdate(
         cardId,
@@ -68,12 +74,12 @@ class CardController {
         },
       );
       if (!card) {
-        return next(ErrorHandler.notFound('card not found'));
+        return next(new NotFoundError('card not found'));
       }
       return res.json({ data: card });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -83,7 +89,7 @@ class CardController {
 
     try {
       if (!cardId) {
-        return next(ErrorHandler.badRequest('incorrect data'));
+        return next(new BadRequestError('incorrect data'));
       }
       const card = await Card.findByIdAndUpdate(
         cardId,
@@ -98,14 +104,14 @@ class CardController {
         },
       );
       if (!card) {
-        return next(ErrorHandler.notFound('card not found'));
+        return next(new NotFoundError('card not found'));
       }
       return res.json({ data: card });
     } catch (error) {
       console.error(error);
-      next(ErrorHandler.internal('На сервере произошла ошибка'));
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 }
-
+// @ts-ignore
 export default new CardController();

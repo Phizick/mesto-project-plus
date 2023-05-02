@@ -8,7 +8,7 @@ import {
   linkValidationOptions,
   emailValidationOptions,
 } from '../utils/validators';
-import ErrorHandler from '../errors/errors';
+import AuthorizationError from '../errors/AuthorizationError';
 
 interface IUser extends Document {
   name: string;
@@ -58,11 +58,13 @@ const UserSchema = new Schema<IUser>({
 
 UserSchema.static('findUserByData', async function findUserByData(email: string, password: string) {
   const user = await this.findOne({ email }).select('+password');
+  if (!user) {
+    throw new AuthorizationError('invalid email or password');
+  }
   const userValid = await bcrypt.compare(password, user.password);
-  if (!user || !userValid) {
-    return ErrorHandler.authorization('invalid email or password');
+  if (!userValid) {
+    throw new AuthorizationError('invalid email or password');
   }
   return user;
 });
-
 export default model<IUser, UserModel>('User', UserSchema);
