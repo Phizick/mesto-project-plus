@@ -1,7 +1,8 @@
 import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import router from './routes/index';
-import errorMiddleware from './middleware/errorMiddleware';
+import errorMiddleware from './middlewares/errorMiddleware';
+import userController from './controllers/users';
 
 require('dotenv').config();
 
@@ -10,14 +11,8 @@ const app: Application = express();
 
 app.use(express.json());
 
-app.use((req: any, res, next) => {
-  req.user = {
-    _id: '644aa6b337ae86e426ed79a2',
-  };
-
-  next();
-});
-
+app.post('/signin', userController.login);
+app.post('/signup', userController.createUser);
 app.use('/', router);
 app.use(errorMiddleware);
 
