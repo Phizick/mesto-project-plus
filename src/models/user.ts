@@ -52,6 +52,7 @@ const UserSchema = new Schema<IUser>({
   password: {
     type: String,
     required: [true, 'password is required'],
+    select: false,
   },
 });
 
