@@ -57,6 +57,23 @@ class UserController {
     }
   }
 
+  async getUserInfo(req: any, res: Response, next: NextFunction) {
+    try {
+      const user = await User.findById(req.user?._id);
+      if (!user) {
+        return next(ErrorHandler.authorization('user not found'));
+      }
+      res.send({ data: user });
+    } catch (error) {
+      // @ts-ignore
+      if (error instanceof ErrorHandler) {
+        return next(error);
+      }
+      console.error(error);
+      next(ErrorHandler.internal('На сервере произошла ошибка'));
+    }
+  }
+
   async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const users = await User.find({});

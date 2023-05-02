@@ -2,7 +2,8 @@ import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import router from './routes/index';
 import errorMiddleware from './middlewares/errorMiddleware';
-import userController from './controllers/users';
+import UserController from './controllers/users';
+import authMiddleware from './middlewares/auth';
 
 require('dotenv').config();
 
@@ -11,8 +12,9 @@ const app: Application = express();
 
 app.use(express.json());
 
-app.post('/signin', userController.login);
-app.post('/signup', userController.createUser);
+app.post('/signin', UserController.login);
+app.post('/signup', UserController.createUser);
+app.use(authMiddleware);
 app.use('/', router);
 app.use(errorMiddleware);
 
