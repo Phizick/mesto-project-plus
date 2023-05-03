@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import * as process from 'process';
 import jwt from 'jsonwebtoken';
+import { mySecretKey } from '../constants/myKey';
 import User from '../models/user';
 import InternalServerError from '../errors/InternalServerError';
 import NotFoundError from '../errors/NotFoundError';
@@ -23,9 +24,9 @@ class UserController {
       }
       const hashPassword = await bcrypt.hash(password, 12);
       const user = await User.create({
-        name: name || 'Жак-Ив-Кусто',
-        about: about || 'Исследователь',
-        avatar: avatar || 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+        name,
+        about,
+        avatar,
         email,
         password: hashPassword,
       });
@@ -121,7 +122,7 @@ class UserController {
   }
 
   async updateUserAvatar(req: any, res: Response, next: NextFunction) {
-    const avatar = req.body;
+    const { avatar } = req.body;
     const id = req.user?._id;
 
     try {
@@ -156,7 +157,7 @@ class UserController {
     try {
       const user = await User.findUserByData(email, password);
       return res.send({
-        token: jwt.sign({ _id: user._id }, process.env.TOKEN_ENV as string, { expiresIn: '7d' }),
+        token: jwt.sign({ _id: user._id }, process.env.TOKEN_ENV as string || mySecretKey, { expiresIn: '7d' }),
       });
     } catch (error) {
       console.error(error);

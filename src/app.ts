@@ -11,7 +11,8 @@ import { createUserValidation, loginValidation } from './validation/userValidati
 
 require('dotenv').config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3025;
+const DB_URL = process.env.DB_URL || 'mongodb://127.0.0.1:27017/test';
 const app: Application = express();
 
 app.use(express.json());
@@ -28,7 +29,7 @@ app.use(errorMiddleware);
 
 const start = async () => {
   try {
-    await mongoose.connect(`${process.env.DB_URL}`);
+    await mongoose.connect(`${DB_URL}`);
     app.listen(
       PORT,
       () => console.log(`Server started on port ${PORT}`),

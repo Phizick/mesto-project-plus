@@ -1,39 +1,30 @@
+import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { Response, NextFunction } from 'express';
 import AuthorizationError from '../errors/AuthorizationError';
+import { mySecretKey } from '../constants/myKey';
 
-type AuthMiddlewareConfig = {
-  headerName: string;
-  authType: string;
-  secretKey: string;
-};
+interface IAuthRequest extends Request {
+  user?: string | JwtPayload
+}
+const extractedToken = (header: string) => header.replace('Bearer ', '');
 
-const defaultConfig: AuthMiddlewareConfig = {
-  headerName: 'authorization',
-  authType: 'Bearer',
-  secretKey: 'any key',
-};
-// eslint-disable-next-line max-len
-const verifyToken = (token: string, secretKey: string): JwtPayload => jwt.verify(token, secretKey) as JwtPayload;
-const extractBearerToken = (header: string, authType: string): string => header.replace(`${authType} `, '');
-// eslint-disable-next-line max-len
-const authMiddleware = (config: AuthMiddlewareConfig = defaultConfig) => (req: any, res: Response, next: NextFunction): void => {
-  const { headerName, authType, secretKey } = config;
-  const headerValue = req.headers[headerName] as string | undefined;
-
-  if (!headerValue || !headerValue.startsWith(`${authType} `)) {
-    return next(new AuthorizationError('authorization required'));
+const authMiddleware = (req: IAuthRequest, _res: Response, next: NextFunction) => {
+  const { authorization } = req.headers;
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return new AuthorizationError('Authorization required');
   }
 
-  const token = extractBearerToken(headerValue, authType);
+  const token = extractedToken(authorization);
+  let payload;
 
-  let payload: JwtPayload | undefined;
   try {
-    payload = verifyToken(token, secretKey);
+    payload = jwt.verify(token, process.env.SECRET_KEY as string || mySecretKey);
   } catch (error) {
-    return next(new AuthorizationError('authorization required'));
+    console.error(error);
+    return new AuthorizationError('Authorization required');
   }
-  req.user = { _id: payload } as { _id: JwtPayload };
+  req.user = payload as { _id: JwtPayload };
   next();
 };
+
 export default authMiddleware;

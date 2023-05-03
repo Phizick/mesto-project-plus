@@ -32,16 +32,19 @@ const UserSchema = new Schema<IUser>({
     minlength: 2,
     maxlength: 30,
     validate: nameValidationOptions,
+    default: 'Жак-Ив-Кусто',
   },
   about: {
     type: String,
     minlength: 2,
     maxlength: 200,
     validate: aboutValidationOptions,
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
     validate: linkValidationOptions,
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
   },
   email: {
     type: String,
@@ -59,11 +62,11 @@ const UserSchema = new Schema<IUser>({
 UserSchema.static('findUserByData', async function findUserByData(email: string, password: string) {
   const user = await this.findOne({ email }).select('+password');
   if (!user) {
-    return new AuthorizationError('invalid email or password');
+    throw new AuthorizationError('invalid email or password');
   }
   const userValid = await bcrypt.compare(password, user.password);
   if (!userValid) {
-    return new AuthorizationError('invalid email or password');
+    throw new AuthorizationError('invalid email or password');
   }
   return user;
 });

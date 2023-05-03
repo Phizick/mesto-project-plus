@@ -1,6 +1,5 @@
 import { Response, NextFunction } from 'express';
 import Card from '../models/card';
-import AuthorizationError from '../errors/AuthorizationError';
 import ForbiddenError from '../errors/ForbiddenError';
 import InternalServerError from '../errors/InternalServerError';
 import NotFoundError from '../errors/NotFoundError';
@@ -40,7 +39,7 @@ class CardController {
     try {
       const card = await Card.findById(cardId);
       if (!card) {
-        return next(new AuthorizationError('Card not found'));
+        return next(new NotFoundError('Card not found'));
       }
       if (card.owner.toString() !== req.user?._id) {
         return next(new ForbiddenError('Action prohibited'));
